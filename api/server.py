@@ -16,6 +16,7 @@ class ServerState:
         self.__user_email_dict = {} # in format: {name:email}
         self.__token_name_dict = {} # in format {token:name}
         self.__conversation_dict = {} # in format: {[token1,token2]:list[messages]}
+        self.__blocked_by_dict = {} # in format: {user:list[people who have blocked them]}
     def sign_up(self,email,name,password):
         if email in self.__user_pass_token_dict:
             print('User already registered!')
@@ -76,6 +77,8 @@ class ServerState:
             recipient_token = self._get_token_from_email(email)
         else:
             recipient_token = self._get_token_from_name(name)
+        if self.check_if_blocked(user_token,recipient_token):
+            return False
         new_message = Message(time.time(),self._get_name_from_token(user_token),message)
         #token_duo = tuple([user_token,recipient_token].sort())
         token_duo = tuple(sorted([user_token,recipient_token]))
@@ -86,5 +89,15 @@ class ServerState:
         convo_list.append(new_message)
         self.__conversation_dict.update({token_duo:convo_list})
         return True
-        
-
+    def block_user_token(self,user_token,block_user_token):
+        if block_user_token not in self.__blocked_by_dict:
+            self.__blocked_by_dict.update({block_user_token:[]})
+        blocked_list = self.__blocked_by_dict[block_user_token]
+        blocked_list.append(user_token)
+        self.__blocked_by_dict.update({block_user_token:blocked_list})
+        return True
+    def check_if_blocked(self,send_user_token,receiver_user_token):
+        if send_user_token in self.__blocked_by_dict:
+            if receiver_user_token in self.__blocked_by_dict[send_user_token]:
+                return True
+        return False
