@@ -5,27 +5,26 @@ class Message:
         self.time = time
         self.user = user
         self.message = message
+    def __str__(self):
+        print('###',self.user,'###')
+        print(self.message)
+        return ''
 class ServerState:
-    def __init__(self,stuff):
-        print('meow')
+    def __init__(self):
+        print('Server Initialized!')
         self.__user_pass_token_dict = {} # in format: {email:(name,password,token)}
         self.__user_email_dict = {} # in format: {name:email}
         self.__token_name_dict = {} # in format {token:name}
         self.__conversation_dict = {} # in format: {[token1,token2]:list[messages]}
     def sign_up(self,email,name,password):
-        """ Signs up new user by adding them to the user-password-token dict
-
-        Args:
-            email (_type_): User email
-            password (_type_): user's password. no safety restrictions given 
-
-        Returns:
-            True always.
-        """
+        if email in self.__user_pass_token_dict:
+            print('User already registered!')
+            return False
         new_user_token = np.random.rand()
         self.__user_pass_token_dict.update({email:(name,password,new_user_token)})
         self.__user_email_dict.update({name:email})
         self.__token_name_dict.update({new_user_token:name})
+        print('Successfully registered!')
         return True
     def login(self,email,password):
         # tries to find user in user database
@@ -50,18 +49,21 @@ class ServerState:
             return self._get_token_from_email(email)
         return False
     def start_conversation(self,token1,token2):
-        token_duo = tuple([token1,token2].sort())
+        #token_duo = tuple([token1,token2].sort())
+        token_duo = tuple(sorted([token1,token2]))
         self.__conversation_dict.update({token_duo:[]})
         return True
     def find_convo_from_email(self,user_token,search_email):
         recipient_token = self._get_token_from_email(search_email)
-        token_duo = tuple([user_token,recipient_token].sort())
+        #token_duo = tuple([user_token,recipient_token].sort())
+        token_duo = tuple(sorted([user_token,recipient_token]))
         if token_duo in self.__conversation_dict:
             return self.__conversation_dict[token_duo]
         return False
     def find_convo_from_name(self,user_token,search_name):
         recipient_token = self._get_token_from_name(search_name)
-        token_duo = tuple([user_token,recipient_token].sort())
+        #token_duo = tuple([user_token,recipient_token].sort())
+        token_duo = tuple(sorted([user_token,recipient_token]))
         if token_duo in self.__conversation_dict:
             return self.__conversation_dict[token_duo]
         return False
@@ -75,7 +77,9 @@ class ServerState:
         else:
             recipient_token = self._get_token_from_name(name)
         new_message = Message(time.time(),self._get_name_from_token(user_token),message)
-        token_duo = tuple([user_token,recipient_token].sort())
+        #token_duo = tuple([user_token,recipient_token].sort())
+        token_duo = tuple(sorted([user_token,recipient_token]))
+
         if token_duo not in self.__conversation_dict:
             self.start_conversation(user_token,recipient_token)
         convo_list = self.__conversation_dict[token_duo]
