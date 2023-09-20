@@ -1,5 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
+import { GoogleAuthProvider, getRedirectResult, getAuth, signInWithRedirect, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -15,17 +16,15 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
-import { GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
-
+const auth = getAuth();
 const provider = new GoogleAuthProvider();
 
-import { getAuth, signInWithRedirect } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
+let currentUser = null;
+onAuthStateChanged(auth, user => currentUser = user);
 
-const auth = getAuth();
-signInWithRedirect(auth, provider);
+const redirectResult = await getRedirectResult(auth).catch(() => null);
 
-import { getRedirectResult } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
+if (!redirectResult && !currentUser) { signInWithRedirect(auth, provider); }
 
 // getRedirectResult(auth)
 //   .then((result) => {
@@ -47,3 +46,15 @@ import { getRedirectResult } from "https://www.gstatic.com/firebasejs/10.3.1/fir
 //     const credential = GoogleAuthProvider.credentialFromError(error);
 //     // ...
 //   });
+
+
+// signInWithRedirect(auth, provider);
+debugger;
+// onAuthStateChanged(auth, user => {
+//   if (user) {
+//     // User is signed in.
+//     console.log('user is logged in');
+//   } else {
+//     console.log('user is not logged in')
+//   }
+// })
