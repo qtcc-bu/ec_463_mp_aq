@@ -101,3 +101,5 @@ class ServerState:
             if receiver_user_token in self.__blocked_by_dict[send_user_token]:
                 return True
         return False
+    def temp(self):
+        return self.__token_name_dict
