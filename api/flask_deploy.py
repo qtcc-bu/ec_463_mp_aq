@@ -8,7 +8,7 @@ Server = server.ServerState()
 @app.route('/')
 def home():
     #return "<p>" + 'should add buttons to take the user places... probably' + "</p>"
-    print(Server.temp())
+    #print(Server.temp())
     html_to_return = "<h1 id=\"sample-markdown\">Sample Markdown</h1>"
     html_to_return +=  "<p>This is some basic, sample markdown.</p>"
     html_to_return += ("<p>" + "New Message!" + "</p>")
@@ -40,15 +40,41 @@ def login():
         if not token:
             error = 'Invalid Credentials. Please try again.'
         else:
-            return redirect(url_for('chat',token=token))
+            return redirect(url_for('search',token=token))
     return render_template('login.html', error=error)
-@app.route('/chat/<token>', methods=['GET', 'POST'])
-def chat(token):
+@app.route('/search/<token>', methods=['GET', 'POST'])
+def search(token):
     token = float(token)
-    html_to_return = ''
-    html_to_return += ("<h1 id=\"sample-markdown\">" + str(Server._get_name_from_token(token)) + "'s Home Page" + "</h1>")
-    html_to_return += '<form action="" method="post">'
-    html_to_return +=    '<input type="text" placeholder="Email" name="email" value="{{request.form.email }}">'
-    html_to_return +=       '<input class="btn btn-default" type="submit" value="Send">'
-    html_to_return +=  '</form>'
+    chat_message = ''
+    if request.method == 'POST':
+        search_thing = request.form['query']
+        return redirect(url_for('chat',token=token,endtoken=search_thing))
+   
+
+    return render_template('search.html', error=chat_message)
     return html_to_return
+@app.route('/chat/<token>/<endtoken>', methods=['GET', 'POST'])
+def chat(token,endtoken):
+    token = float(token)
+    endtoken = str(endtoken)
+    conversation = ''
+    is_email = True
+    if '@' in endtoken:
+        conversation = Server.find_convo_from_email(token,endtoken)
+        is_email = True
+    else:
+        conversation = Server.find_convo_from_name(token,endtoken)
+        is_email = False
+    send_thing = ''
+    if conversation == False:
+        Server.send_message_to_convo(token,endtoken,endtoken,is_email,'Start of Chat')
+    else:
+        for message in conversation:
+            send_thing += ("<p>" + message.user + ': '  + message.message + "</p>")
+    if request.method == 'POST':
+        new_message = request.form['new_chat_text']
+        Server.send_message_to_convo(token,endtoken,endtoken,is_email,new_message)
+    return render_template('chat.html',conversation=send_thing)
+    
+
+
